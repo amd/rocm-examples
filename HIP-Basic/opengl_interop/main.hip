@@ -27,6 +27,7 @@
 #include "glad/glad.h"
 
 #include <GLFW/glfw3.h>
+#include <hip/hip_gl_interop.h>
 #include <hip/hip_runtime.h>
 
 #include <chrono>
@@ -101,7 +102,8 @@ int pick_hip_device()
 {
     unsigned int gl_device_count;
     int          hip_device;
-    HIP_CHECK(hipGLGetDevices(&gl_device_count, &hip_device, 1, hipGLDeviceListAll));
+    HIP_CHECK(
+        hipGLGetDevices(&gl_device_count, &hip_device, 1, hipGLDeviceList::hipGLDeviceListAll));
 
     if(gl_device_count == 0)
     {
@@ -367,10 +369,9 @@ struct renderer
         {
             const auto time_diff_sec
                 = std::chrono::duration_cast<std::chrono::duration<float>>(time_diff).count();
-            std::cout << "Average FPS (over " << std::fixed << std::setprecision(2) << time_diff_sec
-                      << " seconds): " << std::fixed << std::setprecision(2)
-                      << this->fps_frame / time_diff_sec << " (" << std::fixed
-                      << std::setprecision(2) << (time_diff_sec * 1000) / this->fps_frame
+            std::cout << "Average FPS (over " << double_precision(time_diff_sec, 2, true)
+                      << " seconds): " << double_precision(this->fps_frame / time_diff_sec, 2, true)
+                      << " (" << double_precision((time_diff_sec * 1000) / this->fps_frame, 2, true)
                       << " ms per frame, " << this->fps_frame << " frames)" << std::endl;
             this->fps_frame      = 0;
             this->fps_start_time = frame_time;
@@ -478,8 +479,8 @@ struct simulator
         constexpr size_t tile_size = 8;
 
         // Launch the HIP kernel to advance the simulation.
-        sinewave_kernel<<<dim3((grid_width + tile_size - 1) / tile_size,
-                               (grid_height + tile_size - 1) / tile_size),
+        sinewave_kernel<<<dim3(ceiling_div(grid_width, tile_size),
+                               ceiling_div(grid_height, tile_size)),
                           dim3(tile_size, tile_size),
                           0,
                           this->hip_stream>>>(this->hip_height_ptr, time);

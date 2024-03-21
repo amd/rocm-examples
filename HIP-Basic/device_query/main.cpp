@@ -1,6 +1,6 @@
 // MIT License
 //
-// Copyright (c) 2015-2022 Advanced Micro Devices, Inc. All rights reserved.
+// Copyright (c) 2015-2023 Advanced Micro Devices, Inc. All rights reserved.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -20,12 +20,12 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+#include "example_utils.hpp"
+
 #include <iomanip>
 #include <iostream>
 
 #include <hip/hip_runtime.h>
-
-#include "example_utils.hpp"
 
 namespace
 {
@@ -65,8 +65,9 @@ void print_device_properties(int device_id)
     // Print a small set of all available properties. A full list can be found at:
     // https://docs.amd.com/bundle/HIP_API_Guide/page/structhip_device_prop__t.html
     std::cout << std::setw(col_w) << "Name: " << props.name << '\n';
-    std::cout << std::setw(col_w) << "totalGlobalMem: " << std::fixed << std::setprecision(2)
-              << bytes_to_gib(props.totalGlobalMem) << " GiB\n";
+    std::cout << std::setw(col_w)
+              << "totalGlobalMem: " << double_precision(bytes_to_gib(props.totalGlobalMem), 2, true)
+              << " GiB\n";
     std::cout << std::setw(col_w) << "sharedMemPerBlock: " << bytes_to_kib(props.sharedMemPerBlock)
               << " KiB\n";
     std::cout << std::setw(col_w) << "regsPerBlock: " << props.regsPerBlock << '\n';
@@ -133,10 +134,11 @@ void print_device_properties(int device_id)
     size_t free, total;
     HIP_CHECK(hipMemGetInfo(&free, &total));
 
-    std::cout << std::fixed << std::setprecision(2);
-    std::cout << std::setw(col_w) << "memInfo.total: " << bytes_to_gib(total) << " GiB\n";
-    std::cout << std::setw(col_w) << "memInfo.free:  " << bytes_to_gib(free) << " GiB ("
-              << std::setprecision(0) << static_cast<double>(free) / total * 100.0 << "%)\n";
+    std::cout << std::setw(col_w)
+              << "memInfo.total: " << double_precision(bytes_to_gib(total), 2, true) << " GiB\n";
+    std::cout << std::setw(col_w)
+              << "memInfo.free:  " << double_precision(bytes_to_gib(free), 2, true) << " GiB ("
+              << double_precision(static_cast<double>(free) / total * 100.0, 0, true) << "%)\n";
 }
 } // namespace
 

@@ -1,6 +1,6 @@
 // MIT License
 //
-// Copyright (c) 2022 Advanced Micro Devices, Inc. All rights reserved.
+// Copyright (c) 2022-2023 Advanced Micro Devices, Inc. All rights reserved.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -23,13 +23,29 @@
 #ifndef COMMON_EXAMPLE_UTILS_HPP
 #define COMMON_EXAMPLE_UTILS_HPP
 
+// Compiling HIP on Windows includes windows.h, and this triggers many silly warnings.
+#include <cstdint>
+#if defined(_WIN32) && defined(__NVCC__)
+    #pragma nv_diag_suppress 108 // signed bit field of length 1
+    #pragma nv_diag_suppress 174 // expression has no effect
+    #pragma nv_diag_suppress 1835 // attribute "dllimport" does not apply here
+#endif
+
+// rocPRIM adds a #warning about printf on NAVI.
+#ifdef __clang__
+    #pragma clang diagnostic ignored "-W#warnings"
+#endif
+
+#include <algorithm>
 #include <cassert>
 #include <chrono>
+#include <iomanip>
 #include <iostream>
 #include <iterator>
 #include <sstream>
 #include <string>
 #include <type_traits>
+#include <vector>
 
 #include <hip/hip_runtime.h>
 
@@ -165,7 +181,7 @@ public:
 template<typename T,
          typename U,
          std::enable_if_t<std::is_integral<T>::value && std::is_unsigned<U>::value, int> = 0>
-__host__ __device__ auto ceiling_div(const T& dividend, const U& divisor)
+__host__ __device__ constexpr auto ceiling_div(const T& dividend, const U& divisor)
 {
     return (dividend + divisor - 1) / divisor;
 }
@@ -226,6 +242,19 @@ void multiply_matrices(T        alpha,
             C[i1 + i2 * stride_c] = beta * C[i1 + i2 * stride_c] + alpha * t;
         }
     }
+}
+
+/// \brief Returns a string from the double \p value with specified \p precision .
+inline std::string
+    double_precision(const double value, const int precision, const bool fixed = false)
+{
+    std::stringstream ss;
+    if(fixed)
+    {
+        ss << std::fixed;
+    }
+    ss << std::setprecision(precision) << value;
+    return ss.str();
 }
 
 #endif // COMMON_EXAMPLE_UTILS_HPP

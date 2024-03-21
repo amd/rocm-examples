@@ -4,10 +4,11 @@
 #include "glad/glad.h"
 
 #include <hip/hip_runtime.h>
+#include <hip/hip_version.h>
 
 // TODO: Remove this once HIP supports these symbols.
 // See https://github.com/ROCm-Developer-Tools/hipamd/issues/49.
-#if defined(__HIP_PLATFORM_NVCC__) && !defined(hipGLDeviceListAll)
+#if defined(__HIP_PLATFORM_NVIDIA__) && !defined(hipGLDeviceListAll) && HIP_VERSION_MAJOR < 6
 
     #include <cuda_gl_interop.h>
 
@@ -30,32 +31,6 @@ hipError_t hipGraphicsGLRegisterBuffer(hipGraphicsResource_t* const resource,
                                        const unsigned int           flags)
 {
     return hipCUDAErrorTohipError(cudaGraphicsGLRegisterBuffer(resource, buffer, flags));
-}
-
-hipError_t hipGraphicsMapResources(const int                    count,
-                                   hipGraphicsResource_t* const resources,
-                                   const hipStream_t            stream = 0)
-{
-    return hipCUDAErrorTohipError(cudaGraphicsMapResources(count, resources, stream));
-}
-
-hipError_t hipGraphicsResourceGetMappedPointer(void** const                 dev_ptr,
-                                               size_t* const                size,
-                                               const cudaGraphicsResource_t resource)
-{
-    return hipCUDAErrorTohipError(cudaGraphicsResourceGetMappedPointer(dev_ptr, size, resource));
-}
-
-hipError_t hipGraphicsUnmapResources(const int                    count,
-                                     hipGraphicsResource_t* const resources,
-                                     const hipStream_t            stream = 0)
-{
-    return hipCUDAErrorTohipError(cudaGraphicsUnmapResources(count, resources, stream));
-}
-
-hipError_t hipGraphicsUnregisterResource(const hipGraphicsResource_t resource)
-{
-    return hipCUDAErrorTohipError(cudaGraphicsUnregisterResource(resource));
 }
 
 #endif
